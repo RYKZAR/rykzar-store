@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
 const HERO_BG =
-  "blob:https://imgur.com/0331d291-7fb8-4016-b60b-8c9ce64f0282";
+  "https://i.imgur.com/lb9YTaJ.jpeg";
 const BRAND_STORY_IMG =
   "https://images.unsplash.com/photo-1763504015875-7ecef998af64?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200";
 
