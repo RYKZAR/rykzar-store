@@ -9,7 +9,7 @@ const HERO_BG =
 const BRAND_STORY_IMG =
   "https://images.unsplash.com/photo-1763504015875-7ecef998af64?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200";
 
-const MARQUEE_WORDS = ["RYKZAR", "POWER", "FREEDOM", "LOYALTY", "MYSTERY"];
+const MARQUEE_WORDS = ["CONSISTENCY", "POWER", "FREEDOM", "LOYALTY", "MYSTERY"];
 
 function Marquee() {
   const words = [...MARQUEE_WORDS, ...MARQUEE_WORDS];
