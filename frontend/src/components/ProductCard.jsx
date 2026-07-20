@@ -4,10 +4,10 @@ export default function ProductCard({ product }) {
   return (
     <Link
       to={`/product/${product.id}`}
-      className="group block"
+      className="group block transition-transform duration-300 hover:-translate-y-1"
       data-testid={`product-card-${product.id}`}
     >
-      <div className="relative overflow-hidden bg-rykzar-gray aspect-[3/4]">
+      <div className="relative overflow-hidden bg-rykzar-gray aspect-[3/4] transition-shadow duration-300 group-hover:shadow-[0_0_30px_rgba(193,18,31,0.25)]">
         <img
           src={product.images?.[0]}
           alt={product.name}
