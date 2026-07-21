@@ -17,14 +17,26 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, BeforeValidator, ConfigDict
 from bson import ObjectId
-import stripe
+import httpx
+import base64
+import hashlib
 
 # --- Config ---
 JWT_ALGO = "HS256"
 JWT_SECRET = os.environ["JWT_SECRET"]
-STRIPE_API_KEY = os.environ["STRIPE_API_KEY"]
-STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-stripe.api_key = STRIPE_API_KEY
+MIDTRANS_SERVER_KEY = os.environ["MIDTRANS_SERVER_KEY"]
+MIDTRANS_IS_PRODUCTION = os.environ.get("MIDTRANS_IS_PRODUCTION", "false").lower() == "true"
+MIDTRANS_AUTH_HEADER = "Basic " + base64.b64encode(f"{MIDTRANS_SERVER_KEY}:".encode()).decode()
+MIDTRANS_SNAP_URL = (
+    "https://app.midtrans.com/snap/v1/transactions"
+    if MIDTRANS_IS_PRODUCTION
+    else "https://app.sandbox.midtrans.com/snap/v1/transactions"
+)
+MIDTRANS_STATUS_BASE = (
+    "https://api.midtrans.com/v2"
+    if MIDTRANS_IS_PRODUCTION
+    else "https://api.sandbox.midtrans.com/v2"
+)
 
 # --- DB ---
 mongo_url = os.environ['MONGO_URL']
@@ -111,6 +123,7 @@ class ProductIn(BaseModel):
     price: float
     category: str  # hoodies, tees, outerwear, pants, accessories
     images: List[str] = []
+    images_by_color: dict[str, List[str]] = {}
     sizes: List[str] = ["S", "M", "L", "XL"]
     colors: List[str] = ["#0B0B0B"]
     stock: int = 100
@@ -238,6 +251,7 @@ def product_to_out(p: dict) -> dict:
         "price": p["price"],
         "category": p["category"],
         "images": p.get("images", []),
+        "images_by_color": p.get("images_by_color", {}),
         "sizes": p.get("sizes", []),
         "colors": p.get("colors", []),
         "stock": p.get("stock", 0),
@@ -401,7 +415,7 @@ async def create_checkout_session(body: CheckoutIn, request: Request):
     except HTTPException:
         pass
 
-    success_url = f"{body.origin_url}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}"
+    success_url = f"{body.origin_url}/checkout/success"
     cancel_url = f"{body.origin_url}/cart"
 
     metadata = {
@@ -413,28 +427,38 @@ async def create_checkout_session(body: CheckoutIn, request: Request):
     if user_id:
         metadata["user_id"] = user_id
 
-    line_items = [{
-        "price_data": {
-            "currency": "usd",
-            "product_data": {"name": "RYKZAR Order"},
-            "unit_amount": int(round(total * 100)),
-        },
-        "quantity": 1,
-    }]
+    order_id = f"rykzar-{uuid.uuid4().hex[:20]}"
+    gross_amount = int(round(total))
 
-    session = stripe.checkout.Session.create(
-        mode="payment",
-        line_items=line_items,
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata=metadata,
-    )
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            MIDTRANS_SNAP_URL,
+            headers={
+                "Authorization": MIDTRANS_AUTH_HEADER,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            json={
+                "transaction_details": {
+                    "order_id": order_id,
+                    "gross_amount": gross_amount,
+                },
+                "credit_card": {"secure": True},
+                "customer_details": {"email": user_email or "guest@rykzar.com"},
+                "callbacks": {"finish": success_url},
+            },
+        )
+    if resp.status_code >= 400:
+        logger.error(f"Midtrans error: {resp.text}")
+        raise HTTPException(502, "Payment provider error")
+    data = resp.json()
+    redirect_url = data["redirect_url"]
 
     # Save transaction
     tx = {
-        "session_id": session.id,
+        "session_id": order_id,
         "amount": total,
-        "currency": "usd",
+        "currency": "IDR",
         "status": "initiated",
         "payment_status": "pending",
         "metadata": metadata,
@@ -445,18 +469,36 @@ async def create_checkout_session(body: CheckoutIn, request: Request):
     }
     await db.payment_transactions.insert_one(tx)
 
-    return {"url": session.url, "session_id": session.id}
+    return {"url": redirect_url, "session_id": order_id}
 
 
 @api.get("/checkout/status/{session_id}")
 async def checkout_status(session_id: str, request: Request):
-    session = stripe.checkout.Session.retrieve(session_id)
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{MIDTRANS_STATUS_BASE}/{session_id}/status",
+            headers={
+                "Authorization": MIDTRANS_AUTH_HEADER,
+                "Accept": "application/json",
+            },
+        )
+    if resp.status_code >= 400:
+        # Midtrans returns 404 if transaction not started yet (e.g. user hasn't paid)
+        return {"status": "pending", "payment_status": "pending", "amount_total": None, "currency": "IDR"}
+    data = resp.json()
+    midtrans_status = data.get("transaction_status", "pending")  # capture, settlement, pending, deny, cancel, expire
+    if midtrans_status in ("settlement", "capture"):
+        payment_status = "paid"
+    elif midtrans_status in ("expire", "cancel", "deny"):
+        payment_status = "expired"
+    else:
+        payment_status = "pending"
 
     tx = await db.payment_transactions.find_one({"session_id": session_id})
-    if tx and tx.get("payment_status") != "paid" and session.payment_status == "paid":
+    if tx and tx.get("payment_status") != "paid" and payment_status == "paid":
         await db.payment_transactions.update_one(
             {"session_id": session_id},
-            {"$set": {"status": session.status, "payment_status": session.payment_status}},
+            {"$set": {"status": midtrans_status, "payment_status": payment_status}},
         )
         # Create order
         order = {
@@ -472,30 +514,46 @@ async def checkout_status(session_id: str, request: Request):
         await db.orders.insert_one(order)
 
     return {
-        "status": session.status,
-        "payment_status": session.payment_status,
-        "amount_total": session.amount_total,
-        "currency": session.currency,
+        "status": midtrans_status,
+        "payment_status": payment_status,
+        "amount_total": data.get("gross_amount"),
+        "currency": "IDR",
     }
 
 
-@api.post("/webhook/stripe")
-async def stripe_webhook(request: Request):
-    body = await request.body()
-    sig = request.headers.get("Stripe-Signature", "")
+@api.post("/webhook/midtrans")
+async def midtrans_webhook(request: Request):
     try:
-        event = stripe.Webhook.construct_event(body, sig, STRIPE_WEBHOOK_SECRET)
-        obj = event["data"]["object"]
-        session_id = obj.get("id")
-        payment_status = obj.get("payment_status")
-        if session_id and payment_status:
+        payload = await request.json()
+        order_id = payload.get("order_id")
+        status_code = payload.get("status_code")
+        gross_amount = payload.get("gross_amount")
+        signature_key = payload.get("signature_key")
+        transaction_status = payload.get("transaction_status")
+
+        expected_signature = hashlib.sha512(
+            f"{order_id}{status_code}{gross_amount}{MIDTRANS_SERVER_KEY}".encode()
+        ).hexdigest()
+        if signature_key != expected_signature:
+            raise HTTPException(401, "Invalid signature")
+
+        if order_id and transaction_status:
+            if transaction_status in ("settlement", "capture"):
+                payment_status = "paid"
+            elif transaction_status in ("expire", "cancel", "deny"):
+                payment_status = "expired"
+            else:
+                payment_status = "pending"
             await db.payment_transactions.update_one(
-                {"session_id": session_id},
-                {"$set": {"payment_status": payment_status, "event_type": event["type"]}},
+                {"session_id": order_id},
+                {"$set": {"payment_status": payment_status, "status": transaction_status}},
             )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Webhook error: {e}")
     return {"received": True}
+
 
 
 # --- Orders / Admin ---
