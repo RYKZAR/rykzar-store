@@ -39,7 +39,7 @@ export default function ProductDetail() {
           <img
             src={product.images?.[activeImage]}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             data-testid="product-main-image"
           />
         </div>
@@ -53,7 +53,7 @@ export default function ProductDetail() {
               }`}
               data-testid={`thumbnail-${idx}`}
             >
-              <img src={img} alt="" className="w-full h-full object-cover" />
+              <img src={img} alt="" className="w-full h-full object-contain" />
             </button>
           ))}
         </div>
