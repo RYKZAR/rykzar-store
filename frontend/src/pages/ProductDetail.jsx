@@ -26,6 +26,14 @@ export default function ProductDetail() {
     return <div className="pt-40 text-center text-rykzar-silver/60">Loading...</div>;
   }
 
+  const colorImages = product.images_by_color?.[color];
+  const displayImages = colorImages && colorImages.length > 0 ? colorImages : product.images || [];
+
+  const handleColorSelect = (c) => {
+    setColor(c);
+    setActiveImage(0);
+  };
+
   const handleAddToCart = () => {
     addItem(product, size, color, qty);
     toast.success(`${product.name} added to bag`);
@@ -37,14 +45,14 @@ export default function ProductDetail() {
       <div>
         <div className="aspect-[3/4] bg-rykzar-gray overflow-hidden mb-4">
           <img
-            src={product.images?.[activeImage]}
+            src={displayImages[activeImage]}
             alt={product.name}
             className="w-full h-full object-contain"
             data-testid="product-main-image"
           />
         </div>
         <div className="flex gap-3">
-          {product.images?.map((img, idx) => (
+          {displayImages.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setActiveImage(idx)}
@@ -94,7 +102,7 @@ export default function ProductDetail() {
             {product.colors?.map((c) => (
               <button
                 key={c}
-                onClick={() => setColor(c)}
+                onClick={() => handleColorSelect(c)}
                 style={{ backgroundColor: c }}
                 className={`w-9 h-9 rounded-sm border-2 ${
                   color === c ? "border-rykzar-red" : "border-white/20"
