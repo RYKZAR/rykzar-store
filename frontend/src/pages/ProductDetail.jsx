@@ -61,7 +61,7 @@ export default function ProductDetail() {
 
       {/* Details - sticky on desktop */}
       <div className="lg:sticky lg:top-28 self-start">
-        <p className="label-eyebrow text-rykzar-red mb-2">{product.category}</p>
+        <p className="label-eyebrow text-rykzar-red mb-2">{product.category === "tees" ? "Shirt" : product.category}</p>
         <h1 className="font-display text-4xl sm:text-5xl tracking-tight mb-4">{product.name}</h1>
         <p className="text-2xl font-display mb-6">${product.price.toFixed(2)}</p>
         <p className="text-rykzar-silver/80 leading-relaxed mb-8">{product.description}</p>
