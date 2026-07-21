@@ -37,11 +37,17 @@ export default function ProductDetail() {
     <div className="max-w-[1600px] mx-auto px-6 sm:px-8 pt-28 pb-20 grid lg:grid-cols-2 gap-12">
       {/* Gallery */}
       <div>
-        <div className="aspect-[3/4] bg-rykzar-gray overflow-hidden mb-4">
+        <div className="relative aspect-[3/4] bg-rykzar-gray overflow-hidden mb-4">
+          <img
+            src={displayImages[activeImage]}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"
+          />
           <img
             src={displayImages[activeImage]}
             alt={product.name}
-            className="w-full h-full object-contain"
+            className="relative w-full h-full object-contain"
             data-testid="product-main-image"
           />
         </div>
