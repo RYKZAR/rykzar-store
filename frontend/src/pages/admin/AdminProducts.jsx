@@ -100,7 +100,7 @@ export default function AdminProducts() {
             {products.map((p) => (
               <tr key={p.id} className="border-b border-rykzar-gray/60" data-testid={`product-row-${p.id}`}>
                 <td className="px-4 py-3">{p.name}</td>
-                <td className="px-4 py-3 capitalize text-rykzar-silver/70">{p.category}</td>
+                <td className="px-4 py-3 capitalize text-rykzar-silver/70">{p.category === "tees" ? "Shirt" : p.category}</td>
                 <td className="px-4 py-3">${p.price.toFixed(2)}</td>
                 <td className="px-4 py-3">{p.stock}</td>
                 <td className="px-4 py-3 flex gap-3 justify-end">
@@ -137,8 +137,14 @@ export default function AdminProducts() {
                   className="bg-rykzar-gray px-3 py-2.5 text-sm focus:outline-none" data-testid="form-price" />
                 <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
                   className="bg-rykzar-gray px-3 py-2.5 text-sm focus:outline-none" data-testid="form-category">
-                  {["hoodies", "tees", "outerwear", "pants", "accessories"].map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                  {[
+                    { value: "hoodies", label: "Hoodies" },
+                    { value: "tees", label: "Shirt" },
+                    { value: "outerwear", label: "Outerwear" },
+                    { value: "pants", label: "Pants" },
+                    { value: "accessories", label: "Accessories" },
+                  ].map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
               </div>
