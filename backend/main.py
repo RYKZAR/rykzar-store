@@ -24,7 +24,7 @@ import hashlib
 # --- Config ---
 JWT_ALGO = "HS256"
 JWT_SECRET = os.environ["JWT_SECRET"]
-MIDTRANS_SERVER_KEY = os.environ["MIDTRANS_SERVER_KEY"]
+MIDTRANS_SERVER_KEY = os.environ.get("MIDTRANS_SERVER_KEY", "")
 MIDTRANS_IS_PRODUCTION = os.environ.get("MIDTRANS_IS_PRODUCTION", "false").lower() == "true"
 MIDTRANS_AUTH_HEADER = "Basic " + base64.b64encode(f"{MIDTRANS_SERVER_KEY}:".encode()).decode()
 MIDTRANS_SNAP_URL = (
