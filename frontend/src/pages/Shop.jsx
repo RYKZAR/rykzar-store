@@ -6,7 +6,7 @@ import ProductCard from "@/components/ProductCard";
 const CATEGORIES = [
   { label: "All", value: "" },
   { label: "Hoodies", value: "hoodies" },
-  { label: "Tees", value: "tees" },
+  { label: "Shirt", value: "tees" },
   { label: "Outerwear", value: "outerwear" },
   { label: "Pants", value: "pants" },
   { label: "Accessories", value: "accessories" },
