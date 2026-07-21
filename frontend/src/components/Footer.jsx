@@ -21,7 +21,7 @@ export default function Footer() {
           <p className="label-eyebrow mb-4">Shop</p>
           <ul className="space-y-3 text-sm text-rykzar-silver/80">
             <li><Link to="/shop?category=hoodies" className="hover:text-white">Hoodies</Link></li>
-            <li><Link to="/shop?category=tees" className="hover:text-white">Tees</Link></li>
+            <li><Link to="/shop?category=tees" className="hover:text-white">Shirt</Link></li>
             <li><Link to="/shop?category=outerwear" className="hover:text-white">Outerwear</Link></li>
             <li><Link to="/shop?category=accessories" className="hover:text-white">Accessories</Link></li>
           </ul>
