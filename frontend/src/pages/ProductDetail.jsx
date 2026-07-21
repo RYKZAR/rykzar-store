@@ -26,13 +26,7 @@ export default function ProductDetail() {
     return <div className="pt-40 text-center text-rykzar-silver/60">Loading...</div>;
   }
 
-  const colorImages = product.images_by_color?.[color];
-  const displayImages = colorImages && colorImages.length > 0 ? colorImages : product.images || [];
-
-  const handleColorSelect = (c) => {
-    setColor(c);
-    setActiveImage(0);
-  };
+  const displayImages = product.images || [];
 
   const handleAddToCart = () => {
     addItem(product, size, color, qty);
@@ -91,25 +85,6 @@ export default function ProductDetail() {
               >
                 {s}
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Color */}
-        <div className="mb-6">
-          <p className="label-eyebrow mb-3">Color</p>
-          <div className="flex gap-2">
-            {product.colors?.map((c) => (
-              <button
-                key={c}
-                onClick={() => handleColorSelect(c)}
-                style={{ backgroundColor: c }}
-                className={`w-9 h-9 rounded-sm border-2 ${
-                  color === c ? "border-rykzar-red" : "border-white/20"
-                }`}
-                data-testid={`color-option-${c}`}
-                aria-label={`Color ${c}`}
-              />
             ))}
           </div>
         </div>
