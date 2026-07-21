@@ -5,31 +5,9 @@ import { toast } from "sonner";
 
 const EMPTY_FORM = {
   name: "", description: "", price: "", category: "hoodies",
-  images: "", colorImages: "", sizes: "S,M,L,XL", colors: "#0B0B0B", stock: 50,
+  images: "", sizes: "S,M,L,XL", colors: "#0B0B0B", stock: 50,
   featured: false, best_seller: false, new_arrival: false,
 };
-
-function colorImagesToText(imagesByColor) {
-  if (!imagesByColor) return "";
-  return Object.entries(imagesByColor)
-    .map(([color, urls]) => `${color} | ${(urls || []).join(", ")}`)
-    .join("\n");
-}
-
-function colorImagesFromText(text) {
-  const result = {};
-  text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .forEach((line) => {
-      const [color, urlsPart] = line.split("|");
-      if (!color || !urlsPart) return;
-      const urls = urlsPart.split(",").map((u) => u.trim()).filter(Boolean);
-      if (urls.length) result[color.trim()] = urls;
-    });
-  return result;
-}
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -55,7 +33,6 @@ export default function AdminProducts() {
       ...p,
       price: String(p.price),
       images: (p.images || []).join(", "),
-      colorImages: colorImagesToText(p.images_by_color),
       sizes: (p.sizes || []).join(","),
       colors: (p.colors || []).join(","),
     });
@@ -70,7 +47,6 @@ export default function AdminProducts() {
       price: parseFloat(form.price),
       category: form.category,
       images: form.images.split(",").map((s) => s.trim()).filter(Boolean),
-      images_by_color: colorImagesFromText(form.colorImages || ""),
       sizes: form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
       colors: form.colors.split(",").map((s) => s.trim()).filter(Boolean),
       stock: parseInt(form.stock, 10) || 0,
@@ -175,15 +151,6 @@ export default function AdminProducts() {
               <input placeholder="Image URLs (comma separated)" value={form.images}
                 onChange={(e) => setForm({ ...form, images: e.target.value })}
                 className="w-full bg-rykzar-gray px-3 py-2.5 text-sm focus:outline-none" data-testid="form-images" />
-              <div>
-                <p className="text-xs text-rykzar-silver/60 mb-1">
-                  Foto per warna (opsional). Satu baris per warna, format: <code>#kodewarna | link1, link2</code>
-                </p>
-                <textarea placeholder={"#0B0B0B | https://i.imgur.com/foto1.jpg, https://i.imgur.com/foto2.jpg\n#FFFFFF | https://i.imgur.com/foto3.jpg"}
-                  value={form.colorImages}
-                  onChange={(e) => setForm({ ...form, colorImages: e.target.value })}
-                  className="w-full bg-rykzar-gray px-3 py-2.5 text-sm focus:outline-none" rows={3} data-testid="form-color-images" />
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 <input placeholder="Sizes (S,M,L)" value={form.sizes}
                   onChange={(e) => setForm({ ...form, sizes: e.target.value })}
