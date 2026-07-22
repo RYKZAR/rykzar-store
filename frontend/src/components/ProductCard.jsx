@@ -10,20 +10,14 @@ export default function ProductCard({ product }) {
       <div className="relative overflow-hidden bg-rykzar-gray aspect-[3/4] transition-shadow duration-300 group-hover:shadow-[0_0_30px_rgba(193,18,31,0.25)]">
         <img
           src={product.images?.[0]}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40"
-        />
-        <img
-          src={product.images?.[0]}
           alt={product.name}
-          className="relative w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
         {product.images?.[1] && (
           <img
             src={product.images[1]}
             alt=""
-            className="absolute inset-0 w-full h-full object-contain opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-rykzar-gray"
+            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           />
         )}
         {product.new_arrival && (
