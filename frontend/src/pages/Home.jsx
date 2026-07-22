@@ -5,11 +5,11 @@ import api from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
 const HERO_BG =
-  "https://i.imgur.com/lb9YTaJ.jpeg";
+  "https://images.unsplash.com/photo-1765273805583-18e9c7e3cf36?crop=entropy&cs=srgb&fm=jpg&q=85&w=1800";
 const BRAND_STORY_IMG =
   "https://images.unsplash.com/photo-1763504015875-7ecef998af64?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200";
 
-const MARQUEE_WORDS = ["CONSISTENCY", "POWER", "FREEDOM", "LOYALTY", "MYSTERY"];
+const MARQUEE_WORDS = ["RYKZAR", "POWER", "FREEDOM", "LOYALTY", "MYSTERY"];
 
 function Marquee() {
   const words = [...MARQUEE_WORDS, ...MARQUEE_WORDS];
@@ -114,11 +114,20 @@ export default function Home() {
       {/* Brand Story */}
       <section id="brand-story" className="relative py-32 overflow-hidden grain">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 grid lg:grid-cols-2 gap-12 items-center">
-          <div className="relative aspect-[4/5] overflow-hidden">
-            <img src={BRAND_STORY_IMG} alt="RYKZAR brand story" className="w-full h-full object-cover" />
+          <div className="relative">
+            <div className="relative aspect-[4/5] overflow-hidden">
+              <img src={BRAND_STORY_IMG} alt="RYKZAR brand story" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            </div>
+            {/* Corner frame accents */}
+            <div className="pointer-events-none absolute -top-3 -left-3 w-14 h-14 border-t-2 border-l-2 border-rykzar-red" />
+            <div className="pointer-events-none absolute -bottom-3 -right-3 w-14 h-14 border-b-2 border-r-2 border-rykzar-red" />
           </div>
           <div>
-            <p className="label-eyebrow text-rykzar-red mb-4">The Legend</p>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="w-10 h-px bg-rykzar-red" />
+              <p className="label-eyebrow text-rykzar-red">The Legend</p>
+            </div>
             <h2 className="font-display text-4xl sm:text-5xl tracking-tight mb-6">
               BORN FROM THE SHADOW OF A BLACK HORSE
             </h2>
@@ -127,6 +136,14 @@ export default function Home() {
               run free where no one else dares. We build for the ones who carry that same fire &mdash;
               unshaken, unowned, always moving forward.
             </p>
+            <div className="flex flex-wrap gap-x-8 gap-y-3 mt-10 pt-8 border-t border-rykzar-gray">
+              {["500 GSM Cotton", "Limited Batch", "Handmade Detail"].map((stat) => (
+                <div key={stat} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rykzar-red" />
+                  <span className="text-xs uppercase tracking-[0.15em] text-rykzar-silver/70">{stat}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
