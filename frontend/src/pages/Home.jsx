@@ -4,8 +4,7 @@ import { Shield, Zap, Eye } from "lucide-react";
 import api from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
-const HERO_BG =
-  "https://images.unsplash.com/photo-1765273805583-18e9c7e3cf36?crop=entropy&cs=srgb&fm=jpg&q=85&w=1800";
+const HERO_BG = "https://i.imgur.com/lb9YTaJ.jpeg";
 const BRAND_STORY_IMG =
   "https://images.unsplash.com/photo-1763504015875-7ecef998af64?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200";
 
